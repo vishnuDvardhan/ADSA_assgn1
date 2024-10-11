@@ -3,10 +3,13 @@
 #include <algorithm>
 #include <random>
 #include <chrono>
+#include <fstream>
 #include <numeric>
 
 using namespace std;
 
+int rotations;
+vector<int> all_rotation;
 struct Node {
     int data;
     char color;
@@ -23,7 +26,6 @@ class RBTree {
 private:
     Node *root;
 
-protected:
     void rotateLeft(Node *&node) {
         Node *rightChild = node->right;
         node->right = rightChild->left;
@@ -38,6 +40,7 @@ protected:
             node->parent->right = rightChild;
         rightChild->left = node;
         node->parent = rightChild;
+        rotations++;
     }
 
     void rotateRight(Node *&node) {
@@ -54,6 +57,7 @@ protected:
             node->parent->right = leftChild;
         leftChild->right = node;
         node->parent = leftChild;
+        rotations++;
     }
 
     void fixViolation(Node *&node) {
@@ -163,17 +167,55 @@ vector<int> generate_array(int n) {
     return arr;
 }
 
-int main() {
-    RBTree rbtree ;
+vector<vector<int>> generate_arrays() {
+    vector<vector<int>> arrays ;
+    vector<int> sizes = {10000,100000,1000000,10000000};
 
-    vector<int> arr = generate_array(10000);
-
-    for (int i = 0; i < arr.size(); i++)
-    {
-        rbtree.insert(arr[i]);
+    for(int size:sizes) {
+        for (int i = 0; i < 100; ++i) {
+            cout << "generating array of size " << size << ": " << i+1 << "\n";
+            arrays.push_back(generate_array(size));
+        }
     }
-    cout << rbtree.height()<< endl;
+    return arrays;
+}
 
+int main() {
+    vector<RBTree> rbtrees ;
+    ofstream file("rb_tree_output.txt");
+
+    vector<vector<int>> generated_arrays = generate_arrays();
+
+    for (int i = 0; i < generated_arrays.size(); i++)
+    {
+        RBTree rb_tree;
+        rbtrees.push_back(rb_tree);
+
+    }
+    for (int i = 0; i < generated_arrays.size(); i++) {
+        cout << "insertion in " << i <<"th array\n";
+        for(int j = 0; j < generated_arrays[i].size(); j++) {
+            rbtrees[i].insert(generated_arrays[i][j]);
+        }
+        all_rotation.push_back(rotations);
+        rotations=0;
+
+    }
+    cout << "all rotations\n";
+    file << "all_rotations\n";
+    for(int i : all_rotation) {
+        cout << i << "\n";
+        file << i << "\n";
+
+    }
+    cout << "\n";
+    file << "\n";
+    cout << "all heights\n";
+    file << "all heights\n";
+    for(int i = 0; i < generated_arrays.size(); i++) {
+        cout << rbtrees[i].height() << "\n";
+        file << rbtrees[i].height() << "\n";
+    }
 
     return 0;
 }
