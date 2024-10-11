@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <random>
 #include <chrono>
+#include <fstream>
 
 using namespace std;
 int comparisions=0;
@@ -56,29 +57,34 @@ void randomized_quicksort(vector<int>& arr, int low, int high) {
 int main() {
     vector<int> sizes = {10000,100000,1000000,10000000};
     vector<vector<int>> arrays ;
+    ofstream file("quick-sort-output.txt");
+
     for(int size:sizes) {
-        for (int i = 0; i < 4; ++i) {
+        for (int i = 0; i < 100; ++i) {
+            cout << "generating array of size " << size << ": " << i << "\n";
             arrays.push_back(generate_array(size));
         }
     }
     for (int i = 0; i < arrays.size(); ++i) {
-        cout << "initial array: ";
+        file << "initial array: ";
         for (int j=0 ;j < arrays[i].size(); ++j) {
-            cout << arrays[i][j] << " ";
+            file << arrays[i][j] << " ";
         }
 
-        cout << "\n";
+        file << "\n";
         randomized_quicksort(arrays[i], 0, arrays[i].size() - 1);
-        cout << "Sorted array: ";
+        file << "Sorted array: ";
         for (int j=0 ;j < arrays[i].size(); ++j) {
-            cout << arrays[i][j] << " ";
+            file << arrays[i][j] << " ";
         }
-        cout << "\n";
+        file << "\n";
         comps.push_back(comparisions);
         comparisions = 0;
     }
     for(int i = 0; i < comps.size(); ++i) {
         cout << "comparisions: " << comps[i] << "\n";
+        file << "comparisions: " << comps[i] << "\n";
+
     }
 
 
