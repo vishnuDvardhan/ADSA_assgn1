@@ -3,6 +3,8 @@
 #include <random>
 
 using namespace std;
+vector<int> all_rotations , all_heights;
+int rotations=0;
 
 struct Node {
     int key;
@@ -32,7 +34,7 @@ Node* right_rotate(Node* y) {
 
     y->height = max(height(y->left), height(y->right)) + 1;
     x->height = max(height(x->left), height(x->right)) + 1;
-
+    rotations++;
     return x;
 }
 
@@ -45,7 +47,7 @@ Node* left_rotate(Node* x) {
 
     x->height = max(height(x->left), height(x->right)) + 1;
     y->height = max(height(y->left), height(y->right)) + 1;
-
+    rotations++;
     return y;
 }
 
@@ -159,25 +161,42 @@ vector<int> generate_array(int n) {
     return arr;
 }
 
+vector<vector<int>> generate_arrays() {
+    vector<vector<int>> arrays ;
+    vector<int> sizes = {10000,100000,1000000,10000000};
+
+    for(int size:sizes) {
+        for (int i = 0; i < 100; ++i) {
+            cout << "generating array of size " << size << ": " << i+1 << "\n";
+            arrays.push_back(generate_array(size));
+        }
+    }
+    return arrays;
+}
+
 int main() {
     Node* root = nullptr;
-    vector<int> arr = generate_array(100000);
+    vector<vector<int>> arrays = generate_arrays();
 
-    for (int i = 0; i < arr.size(); i++)
-      {
-      root = insert(root, arr[i]);
-      }
+    for (int i = 0; i < arrays.size(); ++i) {
+        for (int j = 0; j < arrays[i].size(); ++j) {
+            root = insert(root, arrays[i][j]);
+        }
+        cout << "inserting array of size " << arrays[i].size() << ": "<< i <<" \n";
+        all_rotations.push_back(rotations);
+        all_heights.push_back(height(root));
+        root = nullptr;
+    }
+    cout << "all rotations" << "\n";
+    for (int i = 0; i < all_rotations.size(); ++i) {
+        cout << all_rotations[i] << " \n";
+    }
+    cout << "all heights" << "\n";
+    for (int i = 0; i < all_heights.size(); ++i) {
+        cout << all_heights[i] << " \n";
+    }
 
 
-    cout << "In-order traversal of the AVL tree: ";
-    in_order(root);
-    cout << endl;
-
-    root = delete_node(root, 40);
-    cout << "In-order traversal after deletion of 40: ";
-    in_order(root);
-    cout << "height is "<< root->height ;
-    cout << endl;
 
     return 0;
 }
