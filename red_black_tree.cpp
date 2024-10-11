@@ -10,23 +10,28 @@ using namespace std;
 
 int rotations;
 vector<int> all_rotation;
-struct Node {
+vector<int> all_heights;
+struct Node
+{
     int data;
     char color;
     Node *left, *right, *parent;
 
-    Node(int data) {
+    Node(int data)
+    {
         this->data = data;
         left = right = parent = nullptr;
         this->color = 'r';
     }
 };
 
-class RBTree {
+class RBTree
+{
 private:
     Node *root;
 
-    void rotateLeft(Node *&node) {
+    void rotateLeft(Node *&node)
+    {
         Node *rightChild = node->right;
         node->right = rightChild->left;
         if (node->right != nullptr)
@@ -43,7 +48,8 @@ private:
         rotations++;
     }
 
-    void rotateRight(Node *&node) {
+    void rotateRight(Node *&node)
+    {
         Node *leftChild = node->left;
         node->left = leftChild->right;
         if (node->left != nullptr)
@@ -60,23 +66,30 @@ private:
         rotations++;
     }
 
-    void fixViolation(Node *&node) {
+    void fixViolation(Node *&node)
+    {
         Node *parent = nullptr;
         Node *grandparent = nullptr;
 
-        while ((node != root) && (node->color != 'b') && (node->parent->color == 'r')) {
+        while ((node != root) && (node->color != 'b') && (node->parent->color == 'r'))
+        {
             parent = node->parent;
             grandparent = parent->parent;
 
-            if (parent == grandparent->left) {
+            if (parent == grandparent->left)
+            {
                 Node *uncle = grandparent->right;
-                if (uncle != nullptr && uncle->color == 'r') {
+                if (uncle != nullptr && uncle->color == 'r')
+                {
                     grandparent->color = 'r';
                     parent->color = 'b';
                     uncle->color = 'b';
                     node = grandparent;
-                } else {
-                    if (node == parent->right) {
+                }
+                else
+                {
+                    if (node == parent->right)
+                    {
                         rotateLeft(parent);
                         node = parent;
                         parent = node->parent;
@@ -85,15 +98,21 @@ private:
                     swap(parent->color, grandparent->color);
                     node = parent;
                 }
-            } else {
+            }
+            else
+            {
                 Node *uncle = grandparent->left;
-                if (uncle != nullptr && uncle->color == 'r') {
+                if (uncle != nullptr && uncle->color == 'r')
+                {
                     grandparent->color = 'r';
                     parent->color = 'b';
                     uncle->color = 'b';
                     node = grandparent;
-                } else {
-                    if (node == parent->left) {
+                }
+                else
+                {
+                    if (node == parent->left)
+                    {
                         rotateRight(parent);
                         node = parent;
                         parent = node->parent;
@@ -108,23 +127,32 @@ private:
     }
 
 public:
+    void refresh()
+    {
+        root = nullptr;
+    }
     RBTree() { root = nullptr; }
 
-    void insert(const int &data) {
+    void insert(const int &data)
+    {
         Node *node = new Node(data);
-        root = bstInsert(root, node);
+        root = Insert(root, node);
         fixViolation(node);
     }
 
-    Node* bstInsert(Node* root, Node *node) {
+    Node *Insert(Node *root, Node *node)
+    {
         if (root == nullptr)
             return node;
 
-        if (node->data < root->data) {
-            root->left = bstInsert(root->left, node);
+        if (node->data < root->data)
+        {
+            root->left = Insert(root->left, node);
             root->left->parent = root;
-        } else if (node->data > root->data) {
-            root->right = bstInsert(root->right, node);
+        }
+        else if (node->data > root->data)
+        {
+            root->right = Insert(root->right, node);
             root->right->parent = root;
         }
 
@@ -133,7 +161,8 @@ public:
 
     void inorder() { inorderHelper(root); }
 
-    void inorderHelper(Node *root) {
+    void inorderHelper(Node *root)
+    {
         if (root == nullptr)
             return;
 
@@ -144,7 +173,8 @@ public:
 
     int height() { return heightHelper(root); }
 
-    int heightHelper(Node *node) {
+    int heightHelper(Node *node)
+    {
         if (node == nullptr)
             return 0;
 
@@ -155,7 +185,8 @@ public:
     }
 };
 
-vector<int> generate_array(int n) {
+vector<int> generate_array(int n)
+{
     vector<int> arr(n);
     iota(arr.begin(), arr.end(), 1);
 
@@ -167,54 +198,59 @@ vector<int> generate_array(int n) {
     return arr;
 }
 
-vector<vector<int>> generate_arrays() {
-    vector<vector<int>> arrays ;
-    vector<int> sizes = {10000,100000,1000000,10000000};
+vector<vector<int>> generate_arrays()
+{
+    vector<vector<int>> arrays;
+    vector<int> sizes = {10000, 100000, 1000000, 10000000};
 
-    for(int size:sizes) {
-        for (int i = 0; i < 100; ++i) {
-            cout << "generating array of size " << size << ": " << i+1 << "\n";
+    for (int size : sizes)
+    {
+        for (int i = 0; i < 100; ++i)
+        {
+            cout << "generating array of size " << size << ": " << i + 1 << "\n";
             arrays.push_back(generate_array(size));
         }
     }
     return arrays;
 }
 
-int main() {
-    vector<RBTree> rbtrees ;
+int main()
+{
+    RBTree rbtree;
     ofstream file("rb_tree_output.txt");
 
     vector<vector<int>> generated_arrays = generate_arrays();
 
-    for (int i = 0; i < generated_arrays.size(); i++)
+        for (int i = 0; i < generated_arrays.size(); i++)
     {
-        RBTree rb_tree;
-        rbtrees.push_back(rb_tree);
 
-    }
-    for (int i = 0; i < generated_arrays.size(); i++) {
-        cout << "insertion in " << i <<"th array\n";
-        for(int j = 0; j < generated_arrays[i].size(); j++) {
-            rbtrees[i].insert(generated_arrays[i][j]);
+        cout << "insertion in " << i << "th array\n";
+        for (int j = 0; j < generated_arrays[i].size(); j++)
+        {
+            rbtree.insert(generated_arrays[i][j]);
         }
         all_rotation.push_back(rotations);
-        rotations=0;
-
+        rotations = 0;
+        cout << "\ncalculating height" << i << "th array\n";
+        int height_of_tree = rbtree.height();
+        all_heights.push_back(height_of_tree);
+        rbtree.refresh();
     }
     cout << "all rotations\n";
     file << "all_rotations\n";
-    for(int i : all_rotation) {
+    for (int i : all_rotation)
+    {
         cout << i << "\n";
         file << i << "\n";
-
     }
     cout << "\n";
     file << "\n";
     cout << "all heights\n";
     file << "all heights\n";
-    for(int i = 0; i < generated_arrays.size(); i++) {
-        cout << rbtrees[i].height() << "\n";
-        file << rbtrees[i].height() << "\n";
+    for (int i = 0; i < generated_arrays.size(); i++)
+    {
+        cout << all_heights[i] << "\n";
+        file << all_heights[i] << "\n";
     }
 
     return 0;
