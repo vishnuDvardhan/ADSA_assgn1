@@ -9,8 +9,8 @@
 using namespace std;
 
 int rotations;
-vector<int> all_rotation;
-vector<int> all_heights;
+vector<int> all_rotation_insertions,all_rotation_deletions;
+vector<int> all_heights,all_heights_after_dels;
 struct Node
 {
     int data;
@@ -45,7 +45,6 @@ private:
             node->parent->right = rightChild;
         rightChild->left = node;
         node->parent = rightChild;
-        rotations++;
     }
 
     void rotateRight(Node *&node)
@@ -63,7 +62,6 @@ private:
             node->parent->right = leftChild;
         leftChild->right = node;
         node->parent = leftChild;
-        rotations++;
     }
 
     void fixViolation(Node *&node)
@@ -126,11 +124,87 @@ private:
         root->color = 'b';
     }
 
+    void transplant(Node *u, Node *v)
+    {
+        if (u->parent == nullptr)
+            root = v;
+        else if (u == u->parent->left)
+            u->parent->left = v;
+        else
+            u->parent->right = v;
+        if (v != nullptr)
+            v->parent = u->parent;
+    }
+
+    Node* minimum(Node* node) {
+        while (node->left != nullptr) {
+            node = node->left;
+        }
+        return node;
+    }
+
+    void deleteFix(Node *x) {
+        while (x != root && x->color == 'b') {
+            if (x == x->parent->left) {
+                Node *s = x->parent->right;
+                if (s->color == 'r') {
+                    s->color = 'b';
+                    x->parent->color = 'r';
+                    rotateLeft(x->parent);
+                    s = x->parent->right;
+                }
+                if (s->left->color == 'b' && s->right->color == 'b') {
+                    s->color = 'r';
+                    x = x->parent;
+                } else {
+                    if (s->right->color == 'b') {
+                        s->left->color = 'b';
+                        s->color = 'r';
+                        rotateRight(s);
+                        s = x->parent->right;
+                    }
+                    s->color = x->parent->color;
+                    x->parent->color = 'b';
+                    s->right->color = 'b';
+                    rotateLeft(x->parent);
+                    x = root;
+                }
+            } else {
+                Node *s = x->parent->left;
+                if (s->color == 'r') {
+                    s->color = 'b';
+                    x->parent->color = 'r';
+                    rotateRight(x->parent);
+                    s = x->parent->left;
+                }
+                if (s->left->color == 'b' && s->right->color == 'b') {
+                    s->color = 'r';
+                    x = x->parent;
+                } else {
+                    if (s->left->color == 'b') {
+                        s->right->color = 'b';
+                        s->color = 'r';
+                        rotateLeft(s);
+                        s = x->parent->left;
+                    }
+                    s->color = x->parent->color;
+                    x->parent->color = 'b';
+                    s->left->color = 'b';
+                    rotateRight(x->parent);
+                    x = root;
+                }
+            }
+        }
+        x->color = 'b';
+    }
+
 public:
+
     void refresh()
     {
         root = nullptr;
     }
+
     RBTree() { root = nullptr; }
 
     void insert(const int &data)
@@ -159,6 +233,47 @@ public:
         return root;
     }
 
+    void delet(int data)
+    {
+        Node* z = root;
+        Node* x, *y;
+
+        while (z != nullptr && z->data != data) {
+            if (data < z->data) z = z->left;
+            else z = z->right;
+        }
+
+        if (z == nullptr) return;
+
+        y = z;
+        char yOriginalColor = y->color;
+        if (z->left == nullptr) {
+            x = z->right;
+            transplant(z, z->right);
+        } else if (z->right == nullptr) {
+            x = z->left;
+            transplant(z, z->left);
+        } else {
+            y = minimum(z->right);
+            yOriginalColor = y->color;
+            x = y->right;
+            if (y->parent == z) {
+                if (x != nullptr) x->parent = y;
+            } else {
+                transplant(y, y->right);
+                y->right = z->right;
+                y->right->parent = y;
+            }
+            transplant(z, y);
+            y->left = z->left;
+            y->left->parent = y;
+            y->color = z->color;
+        }
+        if (yOriginalColor == 'b') {
+            deleteFix(x);
+        }
+    }
+
     void inorder() { inorderHelper(root); }
 
     void inorderHelper(Node *root)
@@ -170,7 +285,6 @@ public:
         cout << root->data << " ";
         inorderHelper(root->right);
     }
-
     int height() { return heightHelper(root); }
 
     int heightHelper(Node *node)
@@ -218,10 +332,10 @@ int main()
 {
     RBTree rbtree;
     ofstream file("rb_tree_output.txt");
-
+    srand(time(0));
     vector<vector<int>> generated_arrays = generate_arrays();
 
-        for (int i = 0; i < generated_arrays.size(); i++)
+    for (int i = 0; i < generated_arrays.size(); i++)
     {
 
         cout << "insertion in " << i << "th array\n";
@@ -229,29 +343,49 @@ int main()
         {
             rbtree.insert(generated_arrays[i][j]);
         }
-        all_rotation.push_back(rotations);
+        all_rotation_insertions.push_back(rotations);
         rotations = 0;
         cout << "\ncalculating height" << i << "th array\n";
         int height_of_tree = rbtree.height();
         all_heights.push_back(height_of_tree);
+        cout << "performing 10% deletions in " << i << "th array\n";
+        for (int j = 0; j < generated_arrays[i].size()/10; j++) {
+            rbtree.delet(rand() % generated_arrays[i].size());
+        }
+        all_rotation_deletions.push_back(rotations);
+        rotations = 0;
+        all_heights_after_dels.push_back(rbtree.height());
         rbtree.refresh();
     }
-    cout << "all rotations\n";
-    file << "all_rotations\n";
-    for (int i : all_rotation)
+    cout << "all rotations for insertions\n";
+    file << "all_rotations for insertions\n";
+    for (int i : all_rotation_insertions)
     {
         cout << i << "\n";
         file << i << "\n";
     }
     cout << "\n";
     file << "\n";
-    cout << "all heights\n";
-    file << "all heights\n";
+    cout << "all heights before deletions\n";
+    file << "all heights before deletions\n";
     for (int i = 0; i < generated_arrays.size(); i++)
     {
         cout << all_heights[i] << "\n";
         file << all_heights[i] << "\n";
     }
+    cout << "\n";
+    file << "\n";
+    cout << "all heights after deletions\n";
+    file << "all heights after deletions\n";
+    for (int i = 0; i < generated_arrays.size(); i++)
+    {
+        cout << all_heights_after_dels[i] << "\n";
+        file << all_heights_after_dels[i] << "\n";
+    }
+    cout << "\n";
+    file << "\n";
+    cout << "all rotations needed for deletions" << "\n";
+    file << "all rotations needed for deletions" << "\n";
 
     return 0;
 }
