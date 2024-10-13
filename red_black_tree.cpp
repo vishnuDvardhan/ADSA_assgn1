@@ -1,27 +1,29 @@
-#include <iostream>
 #include <vector>
 #include <algorithm>
 #include <random>
-#include <chrono>
 #include <fstream>
 #include <numeric>
+#include <iostream>
 
 using namespace std;
 
-int rotations;
-vector<int> all_rotation_insertions,all_rotation_deletions;
-vector<int> all_heights,all_heights_after_dels;
+int rotations = 0;
+vector<int> all_rotation_insertHelperions, all_rotation_deletions;
+vector<int> all_heights, all_heights_after_dels;
+int n = 100;
+ofstream file("rb_tree_output.txt");
+
 struct Node
 {
-    int data;
-    char color;
-    Node *left, *right, *parent;
+    int d;
+    char c;
+    Node *left, *right, *p;
 
-    Node(int data)
+    Node(int d)
     {
-        this->data = data;
-        left = right = parent = nullptr;
-        this->color = 'r';
+        this->d = d;
+        left = right = p = nullptr;
+        this->c = 'r';
     }
 };
 
@@ -32,274 +34,320 @@ private:
 
     void rotateLeft(Node *&node)
     {
-        Node *rightChild = node->right;
-        node->right = rightChild->left;
-        if (node->right != nullptr)
-            node->right->parent = node;
-        rightChild->parent = node->parent;
-        if (node->parent == nullptr)
-            root = rightChild;
-        else if (node == node->parent->left)
-            node->parent->left = rightChild;
+        Node *rc = node->right;
+        node->right = rc->left;
+        if (rc->left != nullptr)
+            rc->left->p = node;
+        rc->p = node->p;
+        if (node->p == nullptr)
+            root = rc;
+        else if (node == node->p->left)
+            node->p->left = rc;
         else
-            node->parent->right = rightChild;
-        rightChild->left = node;
-        node->parent = rightChild;
+            node->p->right = rc;
+        rc->left = node;
+        node->p = rc;
+        rotations++;
     }
 
     void rotateRight(Node *&node)
     {
         Node *leftChild = node->left;
         node->left = leftChild->right;
-        if (node->left != nullptr)
-            node->left->parent = node;
-        leftChild->parent = node->parent;
-        if (node->parent == nullptr)
+        if (leftChild->right != nullptr)
+            leftChild->right->p = node;
+        leftChild->p = node->p;
+        if (node->p == nullptr)
             root = leftChild;
-        else if (node == node->parent->left)
-            node->parent->left = leftChild;
+        else if (node == node->p->left)
+            node->p->left = leftChild;
         else
-            node->parent->right = leftChild;
+            node->p->right = leftChild;
         leftChild->right = node;
-        node->parent = leftChild;
+        node->p = leftChild;
+        rotations;
     }
 
     void fixViolation(Node *&node)
     {
-        Node *parent = nullptr;
-        Node *grandparent = nullptr;
+        Node *p = nullptr;
+        Node *gp = nullptr;
 
-        while ((node != root) && (node->color != 'b') && (node->parent->color == 'r'))
+        while ((node != root) && (node->c != 'b') && (node->p->c == 'r'))
         {
-            parent = node->parent;
-            grandparent = parent->parent;
+            p = node->p;
+            gp = p->p;
 
-            if (parent == grandparent->left)
+            if (p == gp->left)
             {
-                Node *uncle = grandparent->right;
-                if (uncle != nullptr && uncle->color == 'r')
+                Node *uncl = gp->right;
+                if (uncl != nullptr && uncl->c == 'r')
                 {
-                    grandparent->color = 'r';
-                    parent->color = 'b';
-                    uncle->color = 'b';
-                    node = grandparent;
+                    gp->c = 'r';
+                    p->c = 'b';
+                    uncl->c = 'b';
+                    node = gp;
                 }
                 else
                 {
-                    if (node == parent->right)
+                    if (node == p->right)
                     {
-                        rotateLeft(parent);
-                        node = parent;
-                        parent = node->parent;
+                        rotateLeft(p);
+                        node = p;
+                        p = node->p;
                     }
-                    rotateRight(grandparent);
-                    swap(parent->color, grandparent->color);
-                    node = parent;
+                    rotateRight(gp);
+                    swap(p->c, gp->c);
+                    node = p;
                 }
             }
             else
             {
-                Node *uncle = grandparent->left;
-                if (uncle != nullptr && uncle->color == 'r')
+                Node *uncl = gp->left;
+                if (uncl != nullptr && uncl->c == 'r')
                 {
-                    grandparent->color = 'r';
-                    parent->color = 'b';
-                    uncle->color = 'b';
-                    node = grandparent;
+                    gp->c = 'r';
+                    p->c = 'b';
+                    uncl->c = 'b';
+                    node = gp;
                 }
                 else
                 {
-                    if (node == parent->left)
+                    if (node == p->left)
                     {
-                        rotateRight(parent);
-                        node = parent;
-                        parent = node->parent;
+                        rotateRight(p);
+                        node = p;
+                        p = node->p;
                     }
-                    rotateLeft(grandparent);
-                    swap(parent->color, grandparent->color);
-                    node = parent;
+                    rotateLeft(gp);
+                    swap(p->c, gp->c);
+                    node = p;
                 }
             }
         }
-        root->color = 'b';
+        root->c = 'b';
     }
 
     void transplant(Node *u, Node *v)
     {
-        if (u->parent == nullptr)
+        if (u->p == nullptr)
             root = v;
-        else if (u == u->parent->left)
-            u->parent->left = v;
+        else if (u == u->p->left)
+            u->p->left = v;
         else
-            u->parent->right = v;
+            u->p->right = v;
         if (v != nullptr)
-            v->parent = u->parent;
+            v->p = u->p;
     }
 
-    Node* minimum(Node* node) {
-        while (node->left != nullptr) {
+    Node *minimum(Node *node)
+    {
+        while (node->left != nullptr)
             node = node->left;
-        }
         return node;
     }
 
-    void deleteFix(Node *x) {
-        while (x != root && x->color == 'b') {
-            if (x == x->parent->left) {
-                Node *s = x->parent->right;
-                if (s->color == 'r') {
-                    s->color = 'b';
-                    x->parent->color = 'r';
-                    rotateLeft(x->parent);
-                    s = x->parent->right;
+    void deleteFix(Node *x)
+    {
+        while (x != root && (x == nullptr || x->c == 'b'))
+        {
+            if (x == x->p->left)
+            {
+                Node *sibling = x->p->right;
+                if (sibling->c == 'r')
+                {
+                    sibling->c = 'b';
+                    x->p->c = 'r';
+                    rotateLeft(x->p);
+                    sibling = x->p->right;
                 }
-                if (s->left->color == 'b' && s->right->color == 'b') {
-                    s->color = 'r';
-                    x = x->parent;
-                } else {
-                    if (s->right->color == 'b') {
-                        s->left->color = 'b';
-                        s->color = 'r';
-                        rotateRight(s);
-                        s = x->parent->right;
+                if ((sibling->left == nullptr || sibling->left->c == 'b') &&
+                    (sibling->right == nullptr || sibling->right->c == 'b'))
+                {
+                    sibling->c = 'r';
+                    x = x->p;
+                }
+                else
+                {
+                    if (sibling->right == nullptr || sibling->right->c == 'b')
+                    {
+                        if (sibling->left != nullptr)
+                            sibling->left->c = 'b';
+                        sibling->c = 'r';
+                        rotateRight(sibling);
+                        sibling = x->p->right;
                     }
-                    s->color = x->parent->color;
-                    x->parent->color = 'b';
-                    s->right->color = 'b';
-                    rotateLeft(x->parent);
+                    sibling->c = x->p->c;
+                    x->p->c = 'b';
+                    if (sibling->right != nullptr)
+                        sibling->right->c = 'b';
+                    rotateLeft(x->p);
                     x = root;
                 }
-            } else {
-                Node *s = x->parent->left;
-                if (s->color == 'r') {
-                    s->color = 'b';
-                    x->parent->color = 'r';
-                    rotateRight(x->parent);
-                    s = x->parent->left;
+            }
+            else
+            {
+                Node *sibling = x->p->left;
+                if (sibling->c == 'r')
+                {
+                    sibling->c = 'b';
+                    x->p->c = 'r';
+                    rotateRight(x->p);
+                    sibling = x->p->left;
                 }
-                if (s->left->color == 'b' && s->right->color == 'b') {
-                    s->color = 'r';
-                    x = x->parent;
-                } else {
-                    if (s->left->color == 'b') {
-                        s->right->color = 'b';
-                        s->color = 'r';
-                        rotateLeft(s);
-                        s = x->parent->left;
+                if ((sibling->left == nullptr || sibling->left->c == 'b') &&
+                    (sibling->right == nullptr || sibling->right->c == 'b'))
+                {
+                    sibling->c = 'r';
+                    x = x->p;
+                }
+                else
+                {
+                    if (sibling->left == nullptr || sibling->left->c == 'b')
+                    {
+                        if (sibling->right != nullptr)
+                            sibling->right->c = 'b';
+                        sibling->c = 'r';
+                        rotateLeft(sibling);
+                        sibling = x->p->left;
                     }
-                    s->color = x->parent->color;
-                    x->parent->color = 'b';
-                    s->left->color = 'b';
-                    rotateRight(x->parent);
+                    sibling->c = x->p->c;
+                    x->p->c = 'b';
+                    if (sibling->left != nullptr)
+                        sibling->left->c = 'b';
+                    rotateRight(x->p);
                     x = root;
                 }
             }
         }
-        x->color = 'b';
+        if (x != nullptr)
+            x->c = 'b';
     }
 
 public:
+    RBTree() { root = nullptr; }
 
     void refresh()
     {
         root = nullptr;
     }
 
-    RBTree() { root = nullptr; }
-
-    void insert(const int &data)
+    void insert(const int &d)
     {
-        Node *node = new Node(data);
-        root = Insert(root, node);
+        Node *node = new Node(d);
+        root = InsertHelper(root, node);
         fixViolation(node);
     }
 
-    Node *Insert(Node *root, Node *node)
+    Node *InsertHelper(Node *root, Node *node)
     {
         if (root == nullptr)
             return node;
 
-        if (node->data < root->data)
+        if (node->d < root->d)
         {
-            root->left = Insert(root->left, node);
-            root->left->parent = root;
+            root->left = InsertHelper(root->left, node);
+            root->left->p = root;
         }
-        else if (node->data > root->data)
+        else if (node->d > root->d)
         {
-            root->right = Insert(root->right, node);
-            root->right->parent = root;
+            root->right = InsertHelper(root->right, node);
+            root->right->p = root;
         }
 
         return root;
     }
 
-    void delet(int data)
+    void inorder()
     {
-        Node* z = root;
-        Node* x, *y;
-
-        while (z != nullptr && z->data != data) {
-            if (data < z->data) z = z->left;
-            else z = z->right;
-        }
-
-        if (z == nullptr) return;
-
-        y = z;
-        char yOriginalColor = y->color;
-        if (z->left == nullptr) {
-            x = z->right;
-            transplant(z, z->right);
-        } else if (z->right == nullptr) {
-            x = z->left;
-            transplant(z, z->left);
-        } else {
-            y = minimum(z->right);
-            yOriginalColor = y->color;
-            x = y->right;
-            if (y->parent == z) {
-                if (x != nullptr) x->parent = y;
-            } else {
-                transplant(y, y->right);
-                y->right = z->right;
-                y->right->parent = y;
-            }
-            transplant(z, y);
-            y->left = z->left;
-            y->left->parent = y;
-            y->color = z->color;
-        }
-        if (yOriginalColor == 'b') {
-            deleteFix(x);
-        }
+        inorderHelper(root);
     }
-
-    void inorder() { inorderHelper(root); }
 
     void inorderHelper(Node *root)
     {
         if (root == nullptr)
             return;
-
         inorderHelper(root->left);
-        cout << root->data << " ";
+        file << root->d << " ";
+
         inorderHelper(root->right);
     }
-    int height() { return heightHelper(root); }
 
-    int heightHelper(Node *node)
+    void delet(int d)
+    {
+        Node *z = root;
+        Node *x = nullptr, *y = nullptr;
+
+        while (z != nullptr && z->d != d)
+        {
+            if (d < z->d)
+                z = z->left;
+            else
+                z = z->right;
+        }
+
+        if (z == nullptr)
+            return;
+
+        y = z;
+        char yOriginalColor = y->c;
+
+        if (z->left == nullptr)
+        {
+            x = z->right;
+            transplant(z, z->right);
+        }
+        else if (z->right == nullptr)
+        {
+            x = z->left;
+            transplant(z, z->left);
+        }
+        else
+        {
+            y = minimum(z->right);
+            yOriginalColor = y->c;
+            x = y->right;
+            if (y->p == z)
+            {
+                if (x != nullptr)
+                    x->p = y;
+            }
+            else
+            {
+                transplant(y, y->right);
+                y->right = z->right;
+                y->right->p = y;
+            }
+            transplant(z, y);
+            y->left = z->left;
+            y->left->p = y;
+            y->c = z->c;
+        }
+
+        delete z;
+
+        if (yOriginalColor == 'b' && x != nullptr)
+        {
+            deleteFix(x);
+        }
+    }
+
+    int height()
+    {
+        return getHeightHelper(root);
+    }
+
+    int getHeightHelper(Node *node)
     {
         if (node == nullptr)
-            return 0;
-
-        int leftHeight = heightHelper(node->left);
-        int rightHeight = heightHelper(node->right);
-
-        return 1 + max(leftHeight, rightHeight);
+            return -1;
+        int leftHeight = getHeightHelper(node->left);
+        int rightHeight = getHeightHelper(node->right);
+        return max(leftHeight, rightHeight) + 1;
     }
 };
 
-vector<int> generate_array(int n)
+vector<int> array_gen(int n)
 {
     vector<int> arr(n);
     iota(arr.begin(), arr.end(), 1);
@@ -319,10 +367,10 @@ vector<vector<int>> generate_arrays()
 
     for (int size : sizes)
     {
-        for (int i = 0; i < 100; ++i)
+        for (int i = 0; i < n; ++i)
         {
             cout << "generating array of size " << size << ": " << i + 1 << "\n";
-            arrays.push_back(generate_array(size));
+            arrays.push_back(array_gen(size));
         }
     }
     return arrays;
@@ -331,27 +379,29 @@ vector<vector<int>> generate_arrays()
 int main()
 {
     RBTree rbtree;
-    ofstream file("rb_tree_output.txt");
     srand(time(0));
     vector<vector<int>> generated_arrays = generate_arrays();
 
     for (int i = 0; i < generated_arrays.size(); i++)
     {
 
-        cout << "insertion in " << i << "th array\n";
+        cout << "insertHelperion in " << i << "th array\n";
         for (int j = 0; j < generated_arrays[i].size(); j++)
         {
             rbtree.insert(generated_arrays[i][j]);
         }
-        all_rotation_insertions.push_back(rotations);
+        all_rotation_insertHelperions.push_back(rotations);
         rotations = 0;
         cout << "\ncalculating height" << i << "th array\n";
         int height_of_tree = rbtree.height();
         all_heights.push_back(height_of_tree);
-        cout << "performing 10% deletions in " << i << "th array\n";
-        for (int j = 0; j < generated_arrays[i].size()/10; j++) {
-            rbtree.delet(rand() % generated_arrays[i].size());
+        cout << "performing 10\% deletions in " << i << "th array\n";
+        for (int j = 0; j < generated_arrays[i].size() / 10; j++)
+        {
+            int ele = rand() % generated_arrays[i].size();
+            rbtree.delet(ele);
         }
+        cout << "\n";
         all_rotation_deletions.push_back(rotations);
         rotations = 0;
         all_heights_after_dels.push_back(rbtree.height());
@@ -359,7 +409,7 @@ int main()
     }
     cout << "all rotations for insertions\n";
     file << "all_rotations for insertions\n";
-    for (int i : all_rotation_insertions)
+    for (int i : all_rotation_insertHelperions)
     {
         cout << i << "\n";
         file << i << "\n";
@@ -386,6 +436,11 @@ int main()
     file << "\n";
     cout << "all rotations needed for deletions" << "\n";
     file << "all rotations needed for deletions" << "\n";
+    for (int i : all_rotation_deletions)
+    {
+        cout << i << "\n";
+        file << i << "\n";
+    }
 
     return 0;
 }

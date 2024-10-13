@@ -7,7 +7,8 @@
 
 using namespace std;
 
-vector<int> generate_array(int n) {
+vector<int> array_gen(int n)
+{
     vector<int> arr(n);
     iota(arr.begin(), arr.end(), 1);
 
@@ -19,6 +20,7 @@ vector<int> generate_array(int n) {
     return arr;
 }
 
-int main() {
+int main()
+{
     return 0;
 }

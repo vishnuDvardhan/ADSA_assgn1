@@ -3,31 +3,37 @@
 #include <random>
 
 using namespace std;
-vector<int> all_rotations , all_heights;
-int rotations=0;
+vector<int> all_rotations, all_heights;
+int rotations = 0;
 
-struct Node {
+struct Node
+{
     int key;
-    Node* left;
-    Node* right;
+    Node *left;
+    Node *right;
     int height;
 
     Node(int val) : key(val), left(nullptr), right(nullptr), height(1) {}
 };
 
-int height(Node* node) {
-    if (!node) return 0;
+int height(Node *node)
+{
+    if (!node)
+        return 0;
     return node->height;
 }
 
-int get_balance(Node* node) {
-    if (!node) return 0;
+int get_balance(Node *node)
+{
+    if (!node)
+        return 0;
     return height(node->left) - height(node->right);
 }
 
-Node* right_rotate(Node* y) {
-    Node* x = y->left;
-    Node* T2 = x->right;
+Node *right_rotate(Node *y)
+{
+    Node *x = y->left;
+    Node *T2 = x->right;
 
     x->right = y;
     y->left = T2;
@@ -38,9 +44,10 @@ Node* right_rotate(Node* y) {
     return x;
 }
 
-Node* left_rotate(Node* x) {
-    Node* y = x->right;
-    Node* T2 = y->left;
+Node *left_rotate(Node *x)
+{
+    Node *y = x->right;
+    Node *T2 = y->left;
 
     y->left = x;
     x->right = T2;
@@ -51,8 +58,10 @@ Node* left_rotate(Node* x) {
     return y;
 }
 
-Node* insert(Node* node, int key) {
-    if (!node) return new Node(key);
+Node *insert(Node *node, int key)
+{
+    if (!node)
+        return new Node(key);
 
     if (key < node->key)
         node->left = insert(node->left, key);
@@ -71,12 +80,14 @@ Node* insert(Node* node, int key) {
     if (balance < -1 && key > node->right->key)
         return left_rotate(node);
 
-    if (balance > 1 && key > node->left->key) {
+    if (balance > 1 && key > node->left->key)
+    {
         node->left = left_rotate(node->left);
         return right_rotate(node);
     }
 
-    if (balance < -1 && key < node->right->key) {
+    if (balance < -1 && key < node->right->key)
+    {
         node->right = right_rotate(node->right);
         return left_rotate(node);
     }
@@ -84,39 +95,49 @@ Node* insert(Node* node, int key) {
     return node;
 }
 
-Node* min_value_node(Node* node) {
-    Node* current = node;
+Node *min_value_node(Node *node)
+{
+    Node *current = node;
     while (current->left != nullptr)
         current = current->left;
     return current;
 }
 
-Node* delete_node(Node* root, int key) {
-    if (!root) return root;
+Node *delete_node(Node *root, int key)
+{
+    if (!root)
+        return root;
 
     if (key < root->key)
         root->left = delete_node(root->left, key);
     else if (key > root->key)
         root->right = delete_node(root->right, key);
-    else {
-        if (!root->left || !root->right) {
-            Node* temp = root->left ? root->left : root->right;
+    else
+    {
+        if (!root->left || !root->right)
+        {
+            Node *temp = root->left ? root->left : root->right;
 
-            if (!temp) {
+            if (!temp)
+            {
                 temp = root;
                 root = nullptr;
-            } else
+            }
+            else
                 *root = *temp;
 
             delete temp;
-        } else {
-            Node* temp = min_value_node(root->right);
+        }
+        else
+        {
+            Node *temp = min_value_node(root->right);
             root->key = temp->key;
             root->right = delete_node(root->right, temp->key);
         }
     }
 
-    if (!root) return root;
+    if (!root)
+        return root;
 
     root->height = 1 + max(height(root->left), height(root->right));
 
@@ -125,7 +146,8 @@ Node* delete_node(Node* root, int key) {
     if (balance > 1 && get_balance(root->left) >= 0)
         return right_rotate(root);
 
-    if (balance > 1 && get_balance(root->left) < 0) {
+    if (balance > 1 && get_balance(root->left) < 0)
+    {
         root->left = left_rotate(root->left);
         return right_rotate(root);
     }
@@ -133,7 +155,8 @@ Node* delete_node(Node* root, int key) {
     if (balance < -1 && get_balance(root->right) <= 0)
         return left_rotate(root);
 
-    if (balance < -1 && get_balance(root->right) > 0) {
+    if (balance < -1 && get_balance(root->right) > 0)
+    {
         root->right = right_rotate(root->right);
         return left_rotate(root);
     }
@@ -141,15 +164,18 @@ Node* delete_node(Node* root, int key) {
     return root;
 }
 
-void in_order(Node* root) {
-    if (root) {
+void in_order(Node *root)
+{
+    if (root)
+    {
         in_order(root->left);
         cout << root->key << " ";
         in_order(root->right);
     }
 }
 
-vector<int> generate_array(int n) {
+vector<int> array_gen(int n)
+{
     vector<int> arr(n);
     iota(arr.begin(), arr.end(), 1);
 
@@ -161,42 +187,48 @@ vector<int> generate_array(int n) {
     return arr;
 }
 
-vector<vector<int>> generate_arrays() {
-    vector<vector<int>> arrays ;
-    vector<int> sizes = {10000,100000,1000000,10000000};
+vector<vector<int>> generate_arrays()
+{
+    vector<vector<int>> arrays;
+    vector<int> sizes = {10000, 100000, 1000000, 10000000};
 
-    for(int size:sizes) {
-        for (int i = 0; i < 100; ++i) {
-            cout << "generating array of size " << size << ": " << i+1 << "\n";
-            arrays.push_back(generate_array(size));
+    for (int size : sizes)
+    {
+        for (int i = 0; i < 100; ++i)
+        {
+            cout << "generating array of size " << size << ": " << i + 1 << "\n";
+            arrays.push_back(array_gen(size));
         }
     }
     return arrays;
 }
 
-int main() {
-    Node* root = nullptr;
+int main()
+{
+    Node *root = nullptr;
     vector<vector<int>> arrays = generate_arrays();
 
-    for (int i = 0; i < arrays.size(); ++i) {
-        for (int j = 0; j < arrays[i].size(); ++j) {
+    for (int i = 0; i < arrays.size(); ++i)
+    {
+        for (int j = 0; j < arrays[i].size(); ++j)
+        {
             root = insert(root, arrays[i][j]);
         }
-        cout << "inserting array of size " << arrays[i].size() << ": "<< i <<" \n";
+        cout << "inserting array of size " << arrays[i].size() << ": " << i << " \n";
         all_rotations.push_back(rotations);
         all_heights.push_back(height(root));
         root = nullptr;
     }
     cout << "all rotations" << "\n";
-    for (int i = 0; i < all_rotations.size(); ++i) {
+    for (int i = 0; i < all_rotations.size(); ++i)
+    {
         cout << all_rotations[i] << " \n";
     }
     cout << "all heights" << "\n";
-    for (int i = 0; i < all_heights.size(); ++i) {
+    for (int i = 0; i < all_heights.size(); ++i)
+    {
         cout << all_heights[i] << " \n";
     }
-
-
 
     return 0;
 }
