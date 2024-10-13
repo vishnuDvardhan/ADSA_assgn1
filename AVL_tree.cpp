@@ -1,6 +1,10 @@
 #include <iostream>
 #include <vector>
+#include <algorithm>
 #include <random>
+#include <chrono>
+#include <fstream>
+#include <numeric>
 
 using namespace std;
 vector<int> all_rotations, all_heights;
@@ -174,7 +178,7 @@ void in_order(Node *root)
     }
 }
 
-vector<int> array_gen(int n)
+vector<int> generate_array(int n)
 {
     vector<int> arr(n);
     iota(arr.begin(), arr.end(), 1);
@@ -197,7 +201,7 @@ vector<vector<int>> generate_arrays()
         for (int i = 0; i < 100; ++i)
         {
             cout << "generating array of size " << size << ": " << i + 1 << "\n";
-            arrays.push_back(array_gen(size));
+            arrays.push_back(generate_array(size));
         }
     }
     return arrays;
@@ -207,6 +211,7 @@ int main()
 {
     Node *root = nullptr;
     vector<vector<int>> arrays = generate_arrays();
+    ofstream file("avl_tree_outpur.txt");
 
     for (int i = 0; i < arrays.size(); ++i)
     {
@@ -216,18 +221,24 @@ int main()
         }
         cout << "inserting array of size " << arrays[i].size() << ": " << i << " \n";
         all_rotations.push_back(rotations);
+        rotations = 0;
         all_heights.push_back(height(root));
         root = nullptr;
     }
     cout << "all rotations" << "\n";
+    file << "all rotations" << "\n";
+
     for (int i = 0; i < all_rotations.size(); ++i)
     {
         cout << all_rotations[i] << " \n";
+        file << all_rotations[i] << " \n";
     }
     cout << "all heights" << "\n";
+    file << "all heights" << "\n";
     for (int i = 0; i < all_heights.size(); ++i)
     {
         cout << all_heights[i] << " \n";
+        file << all_heights[i] << " \n";
     }
 
     return 0;
