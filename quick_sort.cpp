@@ -76,20 +76,21 @@ int main()
     }
     for (int i = 0; i < arrays.size(); ++i)
     {
-        file << "initial array: ";
-        for (int j = 0; j < arrays[i].size(); ++j)
-        {
-            file << arrays[i][j] << " ";
-        }
+        // file << "initial array: ";
+        // for (int j = 0; j < arrays[i].size(); ++j)
+        // {
+        //     file << arrays[i][j] << " ";
+        // }
 
-        file << "\n";
+        // file << "\n";
+        cout << "sorting array " << i + 1 << "\n";
         randomized_quicksort(arrays[i], 0, arrays[i].size() - 1);
-        file << "Sorted array: ";
-        for (int j = 0; j < arrays[i].size(); ++j)
-        {
-            file << arrays[i][j] << " ";
-        }
-        file << "\n";
+        // file << "Sorted array: ";
+        // for (int j = 0; j < arrays[i].size(); ++j)
+        // {
+        //     file << arrays[i][j] << " ";
+        // }
+        // file << "\n";
         comps.push_back(comparisions);
         comparisions = 0;
     }

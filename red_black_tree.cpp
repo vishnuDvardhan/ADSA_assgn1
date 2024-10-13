@@ -32,7 +32,7 @@ class RBTree
 private:
     Node *root;
 
-    void rotateLeft(Node *&node)
+    void rotateL(Node *&node)
     {
         Node *rc = node->right;
         node->right = rc->left;
@@ -50,7 +50,7 @@ private:
         rotations++;
     }
 
-    void rotateRight(Node *&node)
+    void rotateR(Node *&node)
     {
         Node *leftChild = node->left;
         node->left = leftChild->right;
@@ -92,11 +92,11 @@ private:
                 {
                     if (node == p->right)
                     {
-                        rotateLeft(p);
+                        rotateL(p);
                         node = p;
                         p = node->p;
                     }
-                    rotateRight(gp);
+                    rotateR(gp);
                     swap(p->c, gp->c);
                     node = p;
                 }
@@ -115,11 +115,11 @@ private:
                 {
                     if (node == p->left)
                     {
-                        rotateRight(p);
+                        rotateR(p);
                         node = p;
                         p = node->p;
                     }
-                    rotateLeft(gp);
+                    rotateL(gp);
                     swap(p->c, gp->c);
                     node = p;
                 }
@@ -158,7 +158,7 @@ private:
                 {
                     sibling->c = 'b';
                     x->p->c = 'r';
-                    rotateLeft(x->p);
+                    rotateL(x->p);
                     sibling = x->p->right;
                 }
                 if ((sibling->left == nullptr || sibling->left->c == 'b') &&
@@ -174,14 +174,14 @@ private:
                         if (sibling->left != nullptr)
                             sibling->left->c = 'b';
                         sibling->c = 'r';
-                        rotateRight(sibling);
+                        rotateR(sibling);
                         sibling = x->p->right;
                     }
                     sibling->c = x->p->c;
                     x->p->c = 'b';
                     if (sibling->right != nullptr)
                         sibling->right->c = 'b';
-                    rotateLeft(x->p);
+                    rotateL(x->p);
                     x = root;
                 }
             }
@@ -192,7 +192,7 @@ private:
                 {
                     sibling->c = 'b';
                     x->p->c = 'r';
-                    rotateRight(x->p);
+                    rotateR(x->p);
                     sibling = x->p->left;
                 }
                 if ((sibling->left == nullptr || sibling->left->c == 'b') &&
@@ -208,14 +208,14 @@ private:
                         if (sibling->right != nullptr)
                             sibling->right->c = 'b';
                         sibling->c = 'r';
-                        rotateLeft(sibling);
+                        rotateL(sibling);
                         sibling = x->p->left;
                     }
                     sibling->c = x->p->c;
                     x->p->c = 'b';
                     if (sibling->left != nullptr)
                         sibling->left->c = 'b';
-                    rotateRight(x->p);
+                    rotateR(x->p);
                     x = root;
                 }
             }
@@ -258,7 +258,7 @@ public:
         return root;
     }
 
-    void inorder()
+    void inorder_printer()
     {
         inorderHelper(root);
     }
@@ -290,7 +290,7 @@ public:
             return;
 
         y = z;
-        char yOriginalColor = y->c;
+        char yoc = y->c;
 
         if (z->left == nullptr)
         {
@@ -305,7 +305,7 @@ public:
         else
         {
             y = minimum(z->right);
-            yOriginalColor = y->c;
+            yoc = y->c;
             x = y->right;
             if (y->p == z)
             {
@@ -326,7 +326,7 @@ public:
 
         delete z;
 
-        if (yOriginalColor == 'b' && x != nullptr)
+        if (yoc == 'b' && x != nullptr)
         {
             deleteFix(x);
         }
@@ -385,7 +385,7 @@ int main()
     for (int i = 0; i < generated_arrays.size(); i++)
     {
 
-        cout << "insertHelperion in " << i << "th array\n";
+        cout << "insertion in " << i << "th array\n";
         for (int j = 0; j < generated_arrays[i].size(); j++)
         {
             rbtree.insert(generated_arrays[i][j]);
@@ -408,14 +408,19 @@ int main()
         rbtree.refresh();
     }
     cout << "all rotations for insertions\n";
-    file << "all_rotations for insertions\n";
+    file << "all rotations for insertions\n";
     for (int i : all_rotation_insertHelperions)
     {
         cout << i << "\n";
         file << i << "\n";
     }
-    cout << "\n";
-    file << "\n";
+    cout << "all rotations needed for deletions" << "\n";
+    file << "all rotations needed for deletions" << "\n";
+    for (int i : all_rotation_deletions)
+    {
+        cout << i << "\n";
+        file << i << "\n";
+    }
     cout << "all heights before deletions\n";
     file << "all heights before deletions\n";
     for (int i = 0; i < generated_arrays.size(); i++)
@@ -423,23 +428,12 @@ int main()
         cout << all_heights[i] << "\n";
         file << all_heights[i] << "\n";
     }
-    cout << "\n";
-    file << "\n";
     cout << "all heights after deletions\n";
     file << "all heights after deletions\n";
     for (int i = 0; i < generated_arrays.size(); i++)
     {
         cout << all_heights_after_dels[i] << "\n";
         file << all_heights_after_dels[i] << "\n";
-    }
-    cout << "\n";
-    file << "\n";
-    cout << "all rotations needed for deletions" << "\n";
-    file << "all rotations needed for deletions" << "\n";
-    for (int i : all_rotation_deletions)
-    {
-        cout << i << "\n";
-        file << i << "\n";
     }
 
     return 0;

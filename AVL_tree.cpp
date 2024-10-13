@@ -7,8 +7,9 @@
 #include <numeric>
 
 using namespace std;
-vector<int> all_rotations, all_heights;
+vector<int> all_rotations, all_heights, all_heights_after_dels, all_rotations_after_dels;
 int rotations = 0;
+int n = 100;
 
 struct Node
 {
@@ -198,7 +199,7 @@ vector<vector<int>> generate_arrays()
 
     for (int size : sizes)
     {
-        for (int i = 0; i < 100; ++i)
+        for (int i = 0; i < n; ++i)
         {
             cout << "generating array of size " << size << ": " << i + 1 << "\n";
             arrays.push_back(generate_array(size));
@@ -211,7 +212,7 @@ int main()
 {
     Node *root = nullptr;
     vector<vector<int>> arrays = generate_arrays();
-    ofstream file("avl_tree_outpur.txt");
+    ofstream file("avl_tree_output.txt");
 
     for (int i = 0; i < arrays.size(); ++i)
     {
@@ -223,22 +224,47 @@ int main()
         all_rotations.push_back(rotations);
         rotations = 0;
         all_heights.push_back(height(root));
+        cout << "deleting 10\% from array  : " << i << " \n";
+        for (int j = 0; j < arrays[i].size() / 10; j++)
+        {
+            int ele = rand() % arrays[i].size();
+            delete_node(root, ele);
+        }
+        all_rotations_after_dels.push_back(rotations);
+        all_heights_after_dels.push_back(height(root));
+        rotations = 0;
         root = nullptr;
     }
-    cout << "all rotations" << "\n";
-    file << "all rotations" << "\n";
+    cout << "all rotations for insertions" << "\n";
+    file << "all rotations for insertions" << "\n";
 
     for (int i = 0; i < all_rotations.size(); ++i)
     {
         cout << all_rotations[i] << " \n";
         file << all_rotations[i] << " \n";
     }
-    cout << "all heights" << "\n";
-    file << "all heights" << "\n";
+
+    cout << "all rotations needed for deletions" << "\n";
+    file << "all rotations needed for deletions" << "\n";
+
+    for (int i = 0; i < all_rotations.size(); ++i)
+    {
+        cout << all_rotations_after_dels[i] << " \n";
+        file << all_rotations_after_dels[i] << " \n";
+    }
+    cout << "all heights before deletions" << "\n";
+    file << "all heights before deletions" << "\n";
     for (int i = 0; i < all_heights.size(); ++i)
     {
         cout << all_heights[i] << " \n";
         file << all_heights[i] << " \n";
+    }
+    cout << "all heights after deletions" << "\n";
+    file << "all heights after deletions" << "\n";
+    for (int i = 0; i < all_heights.size(); ++i)
+    {
+        cout << all_heights_after_dels[i] << " \n";
+        file << all_heights_after_dels[i] << " \n";
     }
 
     return 0;
